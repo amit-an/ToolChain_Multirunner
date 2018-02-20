@@ -1,0 +1,19 @@
+
+[dbservers]
+ansiblevm01
+
+[webservers]
+ansiblevm01
+ansiblevm02
+
+[lb]
+ansiblevm02
+
+[lbworkers]
+ansiblevm01
+ansiblevm02
+
+[hosts]
+ansiblevm01 ansible_ssh_host=10.106.131.50 disk=20 memory=2048 cpu=2
+ansiblevm02 ansible_ssh_host=10.106.131.48 disk=20 memory=1024 cpu=1
+ansiblevm03 ansible_ssh_host=10.106.131.51 disk=20 memory=1500 cpu=1

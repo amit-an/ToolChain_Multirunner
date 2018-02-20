@@ -1,0 +1,76 @@
+<?xml version="1.0" ?> 
+<project name="ServletDBLog4jExample" default="war"  basedir="." xmlns:sonar="antlib:org.sonar.ant">
+	<path id="compile.classpath">
+		<fileset dir="WebContent/WEB-INF/lib">
+			<include name="*.jar"/>
+		</fileset>
+		<pathelement location="lib/tomcat-servlet-3.0-api.jar"/>
+	</path>
+  <property name="srcdir" location="src" />
+   <property name="buildsdir" location="test" />
+   <property name="test.report.dir" location="testreport" />
+   <property name="full-compile" value="true" />
+   	
+   <path id="classpath.test">
+      <pathelement location="lib/junit-4.12.jar" />
+      <pathelement location="${buildsdir}" />
+      <pathelement location="${srcdir}" />
+   </path>
+
+  
+   <!-- <property name="src.dir" value="src" />
+	<property name="build.dir" value="target" />
+	<property name="classes.dir" value="${build.dir}/classes" />
+	<property name="lib.dir" value="lib" />-->
+	
+		<target name="init">
+		<mkdir dir="build/classes"/>
+		<mkdir dir="dist" />
+	</target>
+	
+	<target name="compile" depends="init" >
+		<javac destdir="build/classes" debug="true" srcdir="src"  includeantruntime="false">
+			<classpath refid="compile.classpath"/>
+		</javac>
+	</target>
+	
+	
+
+	
+	
+	
+	
+	
+	<target name="war" depends="compile">
+		<war destfile="dist/webapp.war" webxml="WebContent/WEB-INF/web.xml">
+			<fileset dir="WebContent"/>
+			<lib dir="WebContent/WEB-INF/lib"/>
+			<classes dir="build/classes"/>
+		</war>
+	</target>
+
+	
+	
+	
+	<!--<target name="setversion" if="BUILD.NUMBER">
+		<echo message="Setting official build version in source files..."/>
+		<replace file="WebContent/home.jsp" token="_BUILD_NO_" value="${BUILD.NUMBER}"/>
+	</target>-->
+    <target name="deploywar" depends="war" description="Deploy application as a WAR file">
+        <war destfile="webapp.war" webxml="WebContent/WEB-INF/web.xml">
+            <fileset dir="dist/">
+                <include name="**/*.*"/>
+            </fileset>
+        </war>
+       <!-- <copy todir="https://10.112.78.112:8082/repository/Ritu-gitlab1/" preservelastmodified="true">
+            <fileset dir="dist/">
+                <include name="*.war"/>
+            </fileset>
+        </copy> -->
+    </target>
+	<target name="clean">
+		<delete dir="dist" />
+		<delete dir="build" />
+	</target>
+	
+</project>

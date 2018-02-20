@@ -1,0 +1,32 @@
+version: '2'
+services: 
+  postgres: 
+    build:  
+      context: postgresql/
+      dockerfile: Dockerfile
+      args: 
+        - http_proxy
+        - https_proxy
+    image:  ${JOB_NAME}_postgres:${BUILD_NUMBER}
+    hostname: mypostgres
+    
+# Service name
+  tomcat: 
+    build: tomcat/
+    image:  ${JOB_NAME}_tomcat:${BUILD_NUMBER}
+    links: 
+      - postgres
+    hostname: web1
+    environment:
+      - JDBC_URL="jdbc:postgresql://postgres:5432/UserDB"
+
+  nginx: 
+    build: nginx/
+    image:  ${JOB_NAME}_nginx:${BUILD_NUMBER}
+    ports: 
+        - "80"
+    links: 
+      - tomcat
+    environment:
+      - WEB_SERVERS=tomcat
+

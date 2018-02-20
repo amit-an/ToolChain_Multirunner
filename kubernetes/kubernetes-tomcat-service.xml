@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: tomcat
+  labels:
+    name: tomcat
+spec:
+  type: NodePort
+  ports:
+    # the port that this service should serve on
+  - port: 8080
+    targetPort: 8080
+    nodePort: 30297
+  selector:
+    app: tomcat

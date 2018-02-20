@@ -1,0 +1,22 @@
+---
+# Apache script to check and start the service
+#
+
+ - name: check the installation of apache httpd 
+   yum: name={{item}} state=installed disablerepo=* enablerepo=c{{ansible_distribution_major_version}}-media 
+   with_items:
+   - httpd
+
+ - name: Copy the mod-jk module
+   copy: src=mod_jk.so  dest=/usr/lib64/httpd/modules/mod_jk.so mode=0755
+
+ - name: Copy the processed workers.properties file
+   template: src=workers.properties.jk2 dest=/etc/httpd/conf/workers.properties
+
+ - name: Copy mod-jk file
+   template: src=mod-jk.conf.jk2 dest=/etc/httpd/conf.d/mod-jk.conf
+
+ - name: Ensure the httd service is started
+   service: name=httpd  state=restarted
+
+...

@@ -1,0 +1,8 @@
+#Building the socker image with the name "mycentos"
+
+docker build -t mycentos  .
+
+
+#run with the container name mypostgres and the internal hostname as mypostgres add -P if port is required outside
+
+docker run -it -d --name mynginx -h mynginx --link web1:web1 --link web2:web2 --link web3:web3 -P mynginx

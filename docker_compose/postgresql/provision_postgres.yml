@@ -1,0 +1,71 @@
+---
+# Postgresql script to check and start the service
+#
+
+- hosts: localhost
+
+  tasks:
+  - name: check the installation of postgresql package
+    yum: name={{item}} state=installed 
+    with_items:
+    - python-psycopg2
+    - postgresql-server
+    - postgresql
+
+
+- hosts: localhost
+  become_user: postgres
+  become_method: su
+  become: yes
+
+  tasks:
+  - name: initialize the DB
+    command: initdb -D /var/lib/pgsql/data
+             creates=/var/lib/pgsql/data/postgresql.conf
+ 
+  - name: postgresql should listen on all ports
+    lineinfile: dest=/var/lib/pgsql/data/postgresql.conf
+                   regexp="^listen_addresses"
+                   line="listen_addresses ='*'" state=present
+
+  - name: postgresql should allow access to host
+    copy:
+         dest: /var/lib/pgsql/data/pg_hba.conf
+         content: |
+           local   all   postgres   peer
+           local   all   all        peer
+           host    all   all        0.0.0.0/0   md5
+
+  - name: Check and start the postgresql service
+    command: pg_ctl start -D /var/lib/pgsql/data
+
+  - name: create the new user "pankaj"
+    postgresql_user: name=pankaj password=pankaj123 role_attr_flags=CREATEDB,CREATEROLE,SUPERUSER
+
+  - name: create the new DB "UserDB"
+    postgresql_db: name=UserDB owner=pankaj
+
+  - name: ensure user has access to database
+    postgresql_user: db=UserDB  name=pankaj password=pankaj123 priv=ALL
+   
+  - name: Check if the table already exists
+    command: psql  UserDB  -c '\d Users'
+    register: result
+    ignore_errors: True
+    
+
+  - name: create the table Users if not present already 
+    command: psql  UserDB -c "CREATE 
+     TABLE Users (
+     id SERIAL PRIMARY KEY,
+     name VARCHAR(20) NOT NULL DEFAULT '',
+     email VARCHAR(20) NOT NULL DEFAULT '',
+     country VARCHAR(20) NOT NULL DEFAULT 'USA',
+     password VARCHAR(20) NOT NULL DEFAULT ''
+     );"
+    when: result|failed
+    
+  - name: Verifying Tables exist in UserDB
+    command: psql  UserDB  -c '\d Users'
+
+... 

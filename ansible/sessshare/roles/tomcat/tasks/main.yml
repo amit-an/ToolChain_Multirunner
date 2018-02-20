@@ -1,0 +1,36 @@
+---
+# Tomcat script to check and start the service
+#
+
+ - name: check the installation of tomcat package
+   yum: name=tomcat state=installed disablerepo="*" enablerepo=c{{ansible_distribution_major_version}}-media
+
+ - name: copy the server.xml template 
+   template: src=server.xml.jk2 dest=/etc/tomcat/server.xml
+
+ - name: copy the context.xml template 
+   template: src=context.xml.jk2 dest=/etc/tomcat/context.xml
+
+ - name: Check and start the tomcat service
+   service: name=tomcat state=started
+
+ - name: Delete the extracted files before deployment
+   file: path=/var/lib/tomcat/webapps/ServletDBLog4jExample state=absent
+
+ - debug: msg=" WORK_SPACE is {{ WORK_SPACE }}"
+   
+ - name: Copy the War file to the deployment machine
+   copy: src="{{ WORK_SPACE }}/dist/ServletDBLog4jExample.war" 
+            dest=/var/lib/tomcat/webapps/ServletDBLog4jExample.war
+   notify:
+        - restart tomcat
+
+ - name: Wait for the war file deployment and the web.xml extracted
+   wait_for: path=/var/lib/tomcat/webapps/ServletDBLog4jExample/WEB-INF/web.xml
+
+ - name: Change the JDBC URL to point to the DB machines
+   template: src=web.xml.jk2 dest=/var/lib/tomcat/webapps/ServletDBLog4jExample/WEB-INF/web.xml
+   notify:
+        - restart tomcat
+
+...

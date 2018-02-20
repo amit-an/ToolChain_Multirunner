@@ -1,0 +1,108 @@
+stages:
+   - build
+   - test
+   - artifact
+   - deploy
+   
+ 
+Build_on_Linux:
+  stage: build
+  script:
+     - echo $CI_JOB_STAGE
+     - echo $CI_JOB_NAME
+     - echo $CI_CONFIG_PATH
+     - echo $CI_JOB_TOKEN
+     - echo $CI_RUNNER_DESCRIPTION
+     - ant init
+     - ant compile
+     - ant war
+    
+  tags:  
+    - linuxshell
+ 
+Build_on_Window:
+  stage: build
+  script:
+    - ant init compile war
+  tags:
+    - amit-laptop
+   
+   
+Sonar_analysis:
+  stage: test
+  script:
+   - cd /home/gitlab-runner/builds/d2b1c1e5/0/Ritu/ant_project/src
+   - sudo /opt/sonar-scanner-cli-3.0.3.778-linux/sonar-scanner-3.0.3.778-linux/bin/sonar-scanner scan
+  # - sonar-runner -Dsonar.login=$SONAR_ADMIN -Dsonar.password=$SONAR_PASSWORD
+  tags: 
+   - linuxshell
+   
+   
+   
+# We are using Artifact Repository Nexus Server    
+
+Artifact:
+  stage: artifact
+  script:
+    - ant deploywar
+  #  - curl -k -u $NEXUS_USER:$NEXUS_PASSWORD --upload-file /home/gitlab-runner/builds/d2b1c1e5/0/Ritu/ToolChain/dist/webapp.war https://10.112.78.112:8082/repository/Ritu-gitlab1/
+    - curl -k -u $NEXUS_USER:$NEXUS_PASSWORD --upload-file /home/gitlab-runner/builds/d2b1c1e5/0/Ritu/ToolChain/dist/webapp.war $NEXUS_URL
+  artifacts:
+   paths:
+    - dist/*.war
+   expire_in: 3d   
+  tags:  
+    - linuxshell 
+   
+   
+   
+# We are using Deployment on TOMCAT Server    
+    
+Deployment_on_window:
+   stage: deploy
+   script:
+     #- D:\xampp\tomcat\bin\shutdown.bat
+     #- wget.exe --no-check-certificate $NEXUS_URL/webapp.war
+     - wget.exe --no-check-certificate https://10.112.78.112:8082/repository/Ritu-gitlab1/webapp.war 
+     - copy webapp.war D:\xampp\tomcat\webapps
+     #- D:\xampp\tomcat\bin\startup.bat 
+     # - tomc.bat
+   tags:
+    - amit-laptop
+   environment:
+    name: HCL_PRE_PROD
+
+  
+   
+   
+Deployment_on_Linux:
+   stage: deploy
+   script:
+     - echo "Deploying on Tomcat"
+     - sudo service tomcat stop
+     - wget --no-check-certificate $NEXUS_URL/webapp.war
+     - cp webapp.war $TOMCAT_SERVER
+     - sudo service tomcat start
+   tags:  
+    - linuxshell
+   environment:
+    name: HCL_PRE_RELEASE
+    
+    
+    
+    
+    
+    
+    
+    
+    
+   
+   
+   
+   
+    
+   
+
+ 
+    
+

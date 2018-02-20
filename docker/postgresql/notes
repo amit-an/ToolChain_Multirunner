@@ -1,0 +1,11 @@
+#Building the socker image with the name "mycentos"
+
+docker build -t mycentos  .
+
+# run the image with the container name "postgres"
+
+docker run --name postgres -p 5432:5432  -d  mycentos
+
+#run with the container name mypostgres and the internal hostname as mypostgres add -P if port is required outside
+
+docker run -d --name mypostgres -h mypostgres mypostgres

@@ -1,0 +1,26 @@
+worker.list=balancer,stat
+
+# Generating the connectors for all the tomcat instanaces
+# Worker name is same as the hostname
+
+{% for host in groups['lbworkers'] %}
+worker.{{ host }}.type=ajp13
+worker.{{ host }}.port=8009
+worker.{{ host }}.host={{ host }}
+
+{% endfor %}
+
+#worker.worker2.lbfactor=5
+
+worker.balancer.type=lb
+# Adding all the worker name (hostname) to the workers list
+#worker.balancer.balance_workers=worker1,worker2
+worker.balancer.balance_workers={{ groups["lbworkers"] | join(",") }}
+
+#worker.balancer.method=B
+# Specifies whether requests with SESSION ID's 
+# should be routed back to the same #Tomcat worker.
+worker.balancer.sticky_session=0
+
+worker.stat.type=status
+

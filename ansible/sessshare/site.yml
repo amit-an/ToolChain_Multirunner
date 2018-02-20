@@ -1,0 +1,29 @@
+---
+# Main script for the tomcat installation and customization
+#
+
+# configure the DB servers
+#
+- hosts: dbservers
+  remote_user: root
+
+  roles: 
+     - postgresql
+
+# Configure the tomcat servers
+#
+- hosts: webservers
+  remote_user: root
+
+  roles: 
+     - tomcat
+
+# Configure the load balancer 
+#
+- hosts: lb
+  remote_user: root
+
+  roles: 
+     - loadbalancer
+
+...

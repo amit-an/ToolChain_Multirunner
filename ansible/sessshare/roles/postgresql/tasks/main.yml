@@ -1,0 +1,72 @@
+---
+# Postgresql script to check and start the service
+#
+
+ - name: check the installation of postgresql package
+   yum: name={{item}} state=installed disablerepo=* enablerepo=c{{ansible_distribution_major_version}}-media 
+   with_items:
+   - python-psycopg2
+   - postgresql-server
+   - postgresql
+
+ - name: initialize the DB
+   command: service postgresql initdb
+            creates=/var/lib/pgsql/data/postgresql.conf
+
+ - name: postgresql should listen on all ports
+   lineinfile: dest=/var/lib/pgsql/data/postgresql.conf
+                  regexp="^listen_addresses"
+                  line="listen_addresses ='*'" state=present
+
+ - name: postgresql should allow access to host
+   copy:
+        dest: /var/lib/pgsql/data/pg_hba.conf
+        content: |
+          local   all   postgres   peer
+          local   all   all        peer
+          host    all   all        0.0.0.0/0   md5
+
+ - name: Check and start the postgresql service
+   service: name=postgresql state=started
+
+ - name: create the new user "pankaj"
+   postgresql_user: name=pankaj password=pankaj123 role_attr_flags=CREATEDB,CREATEROLE,SUPERUSER
+   sudo: yes
+   sudo_user: postgres
+
+ - name: create the new DB "UserDB"
+   postgresql_db: name=UserDB owner=pankaj
+   sudo: yes
+   sudo_user: postgres
+
+ - name: ensure user has access to database
+   postgresql_user: db=UserDB  name=pankaj password=pankaj123 priv=ALL
+   sudo: yes
+   sudo_user: postgres
+   
+ - name: Check if the table already exists
+   sudo: yes
+   sudo_user: postgres
+   command: psql  UserDB  -c '\d Users'
+   register: result
+   ignore_errors: True
+   
+
+ - name: create the table Users if not present already 
+   command: psql  UserDB -c "CREATE 
+    TABLE Users (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(20) NOT NULL DEFAULT '',
+    email VARCHAR(20) NOT NULL DEFAULT '',
+    country VARCHAR(20) NOT NULL DEFAULT 'USA',
+    password VARCHAR(20) NOT NULL DEFAULT ''
+    );"
+   sudo: yes
+   sudo_user: postgres
+   when: result|failed
+   
+ - name: Verifying Tables exist in UserDB
+   sudo: yes
+   sudo_user: postgres
+   command: psql  UserDB  -c '\d Users'
+

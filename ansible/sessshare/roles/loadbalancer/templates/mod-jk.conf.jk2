@@ -1,0 +1,14 @@
+LoadModule jk_module modules/mod_jk.so
+
+JkWorkersFile /etc/httpd/conf/workers.properties
+JkLogFile     /var/log/httpd/mod_jk_log
+JkLogLevel    info
+
+JkMount       /ServletDBLog4jExample balancer
+JkMount       /ServletDBLog4jExample/* balancer
+
+JkMount       /trucks balancer
+JkMount       /trucks/* balancer
+
+JkMount	      /status  stat
+
